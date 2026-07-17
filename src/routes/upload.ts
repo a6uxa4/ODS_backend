@@ -2,16 +2,13 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import { randomUUID } from "crypto";
-import fs from "fs";
 import { authRequired } from "../middleware/auth.js";
-
-const uploadsDir = path.resolve("uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+import { getUploadsDir } from "../lib/uploads-dir.js";
 
 const storage = multer.diskStorage({
-  destination: uploadsDir,
+  destination: (_req, _file, cb) => {
+    cb(null, getUploadsDir());
+  },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
     cb(null, `${randomUUID()}${ext}`);

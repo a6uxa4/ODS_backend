@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
 import { connectDb } from "./config/db.js";
+import { getUploadsDir } from "./lib/uploads-dir.js";
 import { env } from "./config/env.js";
 import authRoutes from "./routes/auth.js";
 import apiRoutes from "./routes/api.js";
@@ -33,7 +33,7 @@ async function main() {
     }),
   );
   app.use(express.json());
-  app.use("/uploads", express.static(path.resolve("uploads")));
+  app.use("/uploads", express.static(getUploadsDir()));
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true, service: "ods-backend" });
@@ -55,7 +55,11 @@ async function main() {
     },
   );
 
-  startTelegramBot();
+  if (!process.env.VERCEL) {
+    startTelegramBot();
+  } else {
+    console.log("Telegram bot skipped on Vercel (use a separate worker for polling)");
+  }
 
   app.listen(env.port, () => {
     console.log(`API running on http://localhost:${env.port}`);
